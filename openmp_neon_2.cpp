@@ -8,7 +8,7 @@
 using namespace std;
 
 
-
+/*
 unsigned int Act[8399][264] = { 0 };
 unsigned int Pas[8399][264] = { 0 };
 
@@ -16,17 +16,15 @@ const int Num = 263;
 const int pasNum = 4535;
 const int lieNum = 8399;
 
+
 /*
-
-
-
 unsigned int Act[23045][722] = { 0 };
 unsigned int Pas[23045][722] = { 0 };
 
 const int Num = 721;
 const int pasNum = 14325;
 const int lieNum = 23045;
-
+*/
 
 /*
 unsigned int Act[37960][1188] = { 0 };
@@ -37,14 +35,14 @@ const int pasNum = 14921;
 const int lieNum = 37960;
 */
 
-/*
+
 unsigned int Act[43577][1363] = { 0 };
 unsigned int Pas[54274][1363] = { 0 };
 
 const int Num = 1362;
 const int pasNum = 54274;
 const int lieNum = 43577;
-*/
+
 
 
 //线程数定义
@@ -68,7 +66,7 @@ void init_A()
     //每个消元子第一个为1位所在的位置，就是它所在二维数组的行号
     //例如：消元子（561，...）由Act[561][]存放
     unsigned int a;
-    ifstream infile("act.txt");
+    ifstream infile("act3.txt");
     char fin[10000] = { 0 };
     int index;
     //从文件中提取行
@@ -101,7 +99,7 @@ void init_P()
 {
     //直接按照磁盘文件的顺序存，在磁盘文件是第几行，在数组就是第几行
     unsigned int a;
-    ifstream infile("pas.txt");
+    ifstream infile("pas3.txt");
     char fin[10000] = { 0 };
     int index = 0;
     //从文件中提取行
@@ -317,13 +315,12 @@ void f_omp1()
 
 
 
-
-//neon并行（相对于串行代码进行并行优化的部分已经用注释标出来了）
 void f_omp2()
 {
-    uint32x4_t va_Pas =  vmovq_n_u32(0);
-    uint32x4_t va_Act =  vmovq_n_u32(0);
-    #pragma omp parallel num_threads(NUM_THREADS), private(va_Pas, va_Act)
+    //uint32x4_t va_Pas =  vmovq_n_u32(0);
+    //uint32x4_t va_Act =  vmovq_n_u32(0);
+    #pragma omp parallel num_threads(NUM_THREADS)
+    //, private(va_Pas, va_Act)
     for (int i = lieNum-1; i - 8 >= -1; i -= 8)
     {
         for (int j = 0; j < pasNum; j++)
@@ -596,7 +593,7 @@ int main()
     gettimeofday(&head, NULL);//开始计时
 
 
-    f_omp1();
+    f_omp2();
 
 
     gettimeofday(&tail, NULL);//结束计时

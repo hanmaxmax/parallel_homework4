@@ -4,7 +4,7 @@
 # include <arm_neon.h> // use Neon
 using namespace std;
 
-const int n = 4000;
+const int n = 500;
 float arr[n][n];
 float A[n][n];
 const int NUM_THREADS = 7; //工作线程数量
@@ -69,7 +69,7 @@ void f_ordinary()
 }
 
 
-/*
+
 void f_omp_static()
 {
 	 #pragma omp parallel num_threads(NUM_THREADS)
@@ -99,7 +99,6 @@ void f_omp_static()
 		// 离开for循环时，各个线程默认同步，进入下一行的处理
 	}
 }
-*/
 
 
 //动态创建线程
@@ -449,6 +448,37 @@ void f_omp_static_neon_division()
 
 
 
+void f_omp_static_simd()
+{
+	 #pragma omp parallel num_threads(NUM_THREADS)
+
+	for (int k = 0; k < n; k++)
+	{
+		//串行部分
+		#pragma omp single
+		{
+			float tmp = A[k][k];
+			for (int j = k + 1; j < n; j++)
+			{
+				A[k][j] = A[k][j] / tmp;
+			}
+			A[k][k] = 1.0;
+		}
+
+		//并行部分
+		#pragma omp for simd
+		for (int i = k + 1; i < n; i++)
+		{
+		    int tmp=A[i][k];
+			for (int j = k + 1; j < n; j++)
+				A[i][j] = A[i][j] -  tmp * A[k][j];
+			A[i][k] = 0;
+		}
+		// 离开for循环时，各个线程默认同步，进入下一行的处理
+	}
+}
+
+
 
 
 
@@ -467,7 +497,7 @@ int main()
 	seconds = ((tail.tv_sec - head.tv_sec) * 1000000 + (tail.tv_usec - head.tv_usec)) / 1000.0;//单位 ms
 	cout << "f_ordinary: " << seconds << " ms" << endl;
 
-
+*/
 
 
 
@@ -478,7 +508,7 @@ int main()
 	seconds = ((tail.tv_sec - head.tv_sec) * 1000000 + (tail.tv_usec - head.tv_usec)) / 1000.0;//单位 ms
 	cout << "f_omp_static: " << seconds << " ms" << endl;
 
-*/
+
 
 	ReStart();
 	gettimeofday(&head, NULL);//开始计时
@@ -504,7 +534,7 @@ int main()
 	seconds = ((tail.tv_sec - head.tv_sec) * 1000000 + (tail.tv_usec - head.tv_usec)) / 1000.0;//单位 ms
 	cout << "f_omp_guide_neon: " << seconds << " ms" << endl;
 */
-
+/*
 	ReStart();
 	gettimeofday(&head, NULL);//开始计时
 	f_omp_static_neon_dynamicThreads();
@@ -530,6 +560,16 @@ int main()
 	gettimeofday(&tail, NULL);//结束计时
 	seconds = ((tail.tv_sec - head.tv_sec) * 1000000 + (tail.tv_usec - head.tv_usec)) / 1000.0;//单位 ms
 	cout << "f_omp_static_neon_division: " << seconds << " ms" << endl;
+
+	*/
+
+
+	ReStart();
+	gettimeofday(&head, NULL);//开始计时
+	f_omp_static_simd();
+	gettimeofday(&tail, NULL);//结束计时
+	seconds = ((tail.tv_sec - head.tv_sec) * 1000000 + (tail.tv_usec - head.tv_usec)) / 1000.0;//单位 ms
+	cout << "f_omp_static_simd: " << seconds << " ms" << endl;
 
 
 
